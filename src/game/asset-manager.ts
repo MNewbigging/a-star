@@ -98,7 +98,7 @@ export class AssetManager {
   }
 
   private loadAnimations(fbxLoader: FBXLoader) {
-    const idleUrl = new URL("/anims/Idle.fbx", import.meta.url).href;
+    const idleUrl = new URL("/anims/idle.fbx", import.meta.url).href;
     fbxLoader.load(idleUrl, (group) => {
       if (group.animations.length) {
         const clip = group.animations[0];
