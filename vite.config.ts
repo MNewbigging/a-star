@@ -4,6 +4,6 @@ import { defineConfig } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/workshop-astar/", // replace with the repo name
+  base: "/a-star/", // replace with the repo name
   assetsInclude: ["**/*.gltf"],
 });
