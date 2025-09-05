@@ -16,7 +16,6 @@ export class GameState {
   private camera = new THREE.PerspectiveCamera();
   private controls: OrbitControls;
 
-  private mouseNdc = new THREE.Vector2();
   private raycaster = new THREE.Raycaster();
 
   private agents: Agent[] = [];
@@ -162,8 +161,8 @@ export class GameState {
   private placeAgentMouseMove = (e: MouseEvent) => {
     if (!this.placingAgent) return;
 
-    getNdc(e, this.mouseNdc);
-    this.raycaster.setFromCamera(this.mouseNdc, this.camera);
+    getNdc(e, this.reused.ndc);
+    this.raycaster.setFromCamera(this.reused.ndc, this.camera);
 
     for (const floorCell of this.gridBuilder.floorCells) {
       const intersections = this.raycaster.intersectObject(
@@ -206,10 +205,9 @@ export class GameState {
   private setDestinationMouseMove = (e: MouseEvent) => {
     if (!this.settingAgentDestination) return;
 
-    this.mouseNdc.x = (e.clientX / window.innerWidth) * 2 - 1;
-    this.mouseNdc.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    getNdc(e, this.reused.ndc);
 
-    this.raycaster.setFromCamera(this.mouseNdc, this.camera);
+    this.raycaster.setFromCamera(this.reused.ndc, this.camera);
     for (const floorCell of this.gridBuilder.floorCells) {
       // Ignore the floor cell the agent is on
       const currentCell = this.settingAgentDestination.currentCell;
