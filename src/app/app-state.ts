@@ -1,32 +1,32 @@
 import { GameState } from "../game/game-state";
-import { action, makeAutoObservable, observable } from "mobx";
 import { AssetManager } from "../game/asset-manager";
+import { eventUpdater } from "../events/event-updater";
 
 export class AppState {
-  @observable loaded = false;
-  @observable started = false;
+  loaded = false;
+  started = false;
 
   gameState?: GameState;
 
   private assetManager = new AssetManager();
 
   constructor() {
-    makeAutoObservable(this);
-
     // Give loading UI time to mount
     setTimeout(() => this.loadGame(), 10);
   }
 
-  @action startGame = () => {
+  startGame = () => {
     this.gameState = new GameState(this.assetManager);
     this.started = true;
+    eventUpdater.fire("game-started", null);
   };
 
   private async loadGame() {
     this.assetManager.load().then(this.onLoad);
   }
 
-  @action private onLoad = () => {
+  private onLoad = () => {
     this.loaded = true;
+    eventUpdater.fire("game-loaded", null);
   };
 }

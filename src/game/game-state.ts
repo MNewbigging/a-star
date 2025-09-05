@@ -4,8 +4,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { RenderPipeline } from "./render-pipeline";
 import { AssetManager } from "./asset-manager";
 import { Agent } from "./agent";
-import { makeAutoObservable, observable } from "mobx";
 import { AStar } from "./astar";
+import { eventUpdater } from "../events/event-updater";
 
 export interface GridCell {
   position: THREE.Vector3;
@@ -14,7 +14,7 @@ export interface GridCell {
 }
 
 export class GameState {
-  @observable canSetDestination = false;
+  canSetDestination = false;
 
   private renderPipeline: RenderPipeline;
   private clock = new THREE.Clock();
@@ -37,8 +37,6 @@ export class GameState {
   private floorCells: GridCell[] = [];
 
   constructor(private assetManager: AssetManager) {
-    makeAutoObservable(this);
-
     // Scene
     this.setupCamera();
     this.renderPipeline = new RenderPipeline(this.scene, this.camera);
@@ -208,6 +206,7 @@ export class GameState {
     );
     this.scene.remove(this.agent.model);
     this.canSetDestination = false;
+    eventUpdater.fire("can-set-destination-change", null);
   }
 
   private update = () => {
@@ -259,6 +258,7 @@ export class GameState {
 
     // Can now set destination for the agent
     this.canSetDestination = true;
+    eventUpdater.fire("can-set-destination-change", null);
   };
 
   private setDestinationMouseMove = (e: MouseEvent) => {

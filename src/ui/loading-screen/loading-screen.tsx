@@ -3,27 +3,27 @@ import React from "react";
 import { Spinner } from "@blueprintjs/core";
 import { SpinnerSize } from "@blueprintjs/core/lib/esm/components";
 
-import { observer } from "mobx-react-lite";
 import { AppState } from "../../app/app-state";
+import { useEventUpdater } from "../../events/use-event-updater";
 
 interface LoadingScreenProps {
   appState: AppState;
 }
 
-export const LoadingScreen: React.FC<LoadingScreenProps> = observer(
-  ({ appState }) => {
-    const loaded = appState.loaded;
+export const LoadingScreen: React.FC<LoadingScreenProps> = ({ appState }) => {
+  useEventUpdater("game-loaded");
 
-    return (
-      <div className="loading-screen">
-        {!loaded && <Spinner size={SpinnerSize.LARGE} />}
+  const loaded = appState.loaded;
 
-        {loaded && (
-          <div className="start-button" onClick={appState.startGame}>
-            Start
-          </div>
-        )}
-      </div>
-    );
-  }
-);
+  return (
+    <div className="loading-screen">
+      {!loaded && <Spinner size={SpinnerSize.LARGE} />}
+
+      {loaded && (
+        <div className="start-button" onClick={appState.startGame}>
+          Start
+        </div>
+      )}
+    </div>
+  );
+};

@@ -2,47 +2,47 @@ import { Button } from "@blueprintjs/core";
 import { GameState } from "../../game/game-state";
 import "./game-screen.scss";
 import React from "react";
-import { observer } from "mobx-react-lite";
+import { useEventUpdater } from "../../events/use-event-updater";
 
 interface GameScreenProps {
   gameState: GameState;
 }
 
-export const GameScreen: React.FC<GameScreenProps> = observer(
-  ({ gameState }) => {
-    const showSetDestination = gameState.canSetDestination;
+export const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
+  useEventUpdater("can-set-destination-change");
 
-    return (
-      <div className="game-screen">
+  const showSetDestination = gameState.canSetDestination;
+
+  return (
+    <div className="game-screen">
+      <Button
+        className="button"
+        text="Generate Grid"
+        icon="grid"
+        onClick={gameState.generateGrid}
+      />
+
+      <Button
+        className="button"
+        text="Place Agent"
+        icon="walk"
+        onClick={(e) => {
+          e.stopPropagation();
+          gameState.startPlacingAgent();
+        }}
+      />
+
+      {showSetDestination && (
         <Button
           className="button"
-          text="Generate Grid"
-          icon="grid"
-          onClick={gameState.generateGrid}
-        />
-
-        <Button
-          className="button"
-          text="Place Agent"
-          icon="walk"
+          text="Set Destination"
+          icon="route"
           onClick={(e) => {
             e.stopPropagation();
-            gameState.startPlacingAgent();
+            gameState.startSetDestination();
           }}
         />
-
-        {showSetDestination && (
-          <Button
-            className="button"
-            text="Set Destination"
-            icon="route"
-            onClick={(e) => {
-              e.stopPropagation();
-              gameState.startSetDestination();
-            }}
-          />
-        )}
-      </div>
-    );
-  }
-);
+      )}
+    </div>
+  );
+};
