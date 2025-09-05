@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { AssetManager } from "./asset-manager";
-import { GridCell } from "./game-state";
+import { GridBuilder, GridCell } from "./grid-builder";
 
 export class Agent {
   model: THREE.Object3D;
@@ -17,7 +17,7 @@ export class Agent {
 
   constructor(
     private assetManager: AssetManager,
-    private floorBlackMaterial: THREE.MeshLambertMaterial
+    private gridBuilder: GridBuilder
   ) {
     // Setup the model
     this.model = this.assetManager.models.get("dummy");
@@ -126,7 +126,7 @@ export class Agent {
 
   private colourCellBlack(cell?: GridCell) {
     if (cell) {
-      (cell.object as THREE.Mesh).material = this.floorBlackMaterial;
+      this.gridBuilder.resetGridCellColour(cell);
     }
   }
 

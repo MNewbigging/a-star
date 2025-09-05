@@ -6,12 +6,7 @@ import { AssetManager } from "./asset-manager";
 import { Agent } from "./agent";
 import { AStar } from "./astar";
 import { eventUpdater } from "../events/event-updater";
-
-export interface GridCell {
-  position: THREE.Vector3;
-  obstacle: boolean;
-  object: THREE.Object3D;
-}
+import { GridBuilder, gridCellsAreEqual } from "./grid-builder";
 
 export class GameState {
   canSetDestination = false;
@@ -28,13 +23,9 @@ export class GameState {
 
   private agent: Agent;
 
-  private floorBlackMaterial: THREE.MeshLambertMaterial;
-  private floorGreenMaterial: THREE.MeshLambertMaterial;
-  private floorRedMaterial: THREE.MeshLambertMaterial;
-  private obstacleMaterial: THREE.MeshLambertMaterial;
+  private gridBuilder: GridBuilder;
+
   private gridSize = 10;
-  private grid: GridCell[][] = [];
-  private floorCells: GridCell[] = [];
 
   constructor(private assetManager: AssetManager) {
     // Scene
@@ -51,30 +42,14 @@ export class GameState {
     this.scene.background = new THREE.Color("#1680AF");
 
     // Grid
-    this.floorBlackMaterial = new THREE.MeshLambertMaterial({
-      map: this.assetManager.textures.get("floor-black"),
-    });
-    this.floorGreenMaterial = new THREE.MeshLambertMaterial({
-      map: this.assetManager.textures.get("floor-green"),
-    });
-    this.floorRedMaterial = new THREE.MeshLambertMaterial({
-      map: this.assetManager.textures.get("floor-red"),
-    });
-
-    const obstacleTexture = this.assetManager.textures.get("obstacle-orange");
-    obstacleTexture.wrapS = THREE.RepeatWrapping;
-    obstacleTexture.wrapT = THREE.RepeatWrapping;
-    obstacleTexture.repeat = new THREE.Vector2(1, 3);
-    this.obstacleMaterial = new THREE.MeshLambertMaterial({
-      map: obstacleTexture,
-    });
+    this.gridBuilder = new GridBuilder(this.scene, assetManager);
 
     // Starting grid
-    this.buildGrid(this.gridSize);
-    this.displayGrid(this.grid);
+    this.gridBuilder.buildGrid(this.gridSize);
+    this.gridBuilder.displayGrid();
 
     // Agent
-    this.agent = new Agent(this.assetManager, this.floorBlackMaterial);
+    this.agent = new Agent(this.assetManager, this.gridBuilder);
 
     // Start game
     this.update();
@@ -82,9 +57,9 @@ export class GameState {
 
   generateGrid = () => {
     this.removeAgent();
-    this.disposeGrid(this.grid);
-    this.buildGrid(this.gridSize);
-    this.displayGrid(this.grid);
+    this.gridBuilder.disposeGrid();
+    this.gridBuilder.buildGrid(this.gridSize);
+    this.gridBuilder.displayGrid();
   };
 
   startPlacingAgent = () => {
@@ -103,12 +78,11 @@ export class GameState {
 
   startSetDestination = () => {
     // Remove any previous path
-    this.floorCells.forEach((cell) =>
-      this.changeFloorMaterial(cell, this.floorBlackMaterial)
-    );
+    this.gridBuilder.resetFloorCells();
 
     // Highlight floor spaces for available destinations
     window.addEventListener("mousemove", this.setDestinationMouseMove);
+
     // Listen for clicks
     window.addEventListener("click", this.setDestinationClick);
   };
@@ -128,82 +102,9 @@ export class GameState {
     this.scene.add(directLight);
   }
 
-  private buildGrid(gridSize: number) {
-    const grid: GridCell[][] = [];
-    // We only intersect against floors when placing agents and routes,
-    // So we pull out the floor cells once to avoid re-iterating the grid later
-    const floorCells: GridCell[] = [];
-
-    for (let z = 0; z < gridSize; z++) {
-      // Init the array for this row
-      grid[z] = [];
-
-      for (let x = 0; x < gridSize; x++) {
-        // Random chance of being an obstacle
-        const obstacle = Math.random() > 0.8;
-
-        let cell: GridCell | undefined;
-        if (obstacle) {
-          cell = this.createObstacleCell(x, z);
-        } else {
-          cell = this.createFloorCell(x, z);
-          floorCells.push(cell);
-        }
-
-        grid[z][x] = cell;
-      }
-    }
-
-    // Assign the new grid and floor cells
-    this.grid = grid;
-    this.floorCells = floorCells;
-  }
-
-  private createFloorCell(x: number, z: number): GridCell {
-    const object = new THREE.Mesh(
-      new THREE.BoxGeometry(),
-      this.floorBlackMaterial
-    );
-
-    object.position.set(x, -0.5, z); // offset y so that top of box is at 0
-
-    return {
-      position: new THREE.Vector3(x, 0, z),
-      obstacle: false,
-      object,
-    };
-  }
-
-  private createObstacleCell(x: number, z: number): GridCell {
-    const object = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 3, 1),
-      this.obstacleMaterial
-    );
-
-    object.position.set(x, 0.5, z); // offset y so bottom matches floors
-
-    return {
-      position: new THREE.Vector3(x, 0, z),
-      obstacle: true,
-      object,
-    };
-  }
-
-  private displayGrid(grid: GridCell[][]) {
-    grid.forEach((row) => row.forEach((cell) => this.scene.add(cell.object)));
-  }
-
-  private disposeGrid(grid: GridCell[][]) {
-    grid.forEach((row) =>
-      row.forEach((cell) => this.scene.remove(cell.object))
-    );
-  }
-
   private removeAgent() {
     this.agent.clearPath();
-    this.floorCells.forEach((cell) =>
-      this.changeFloorMaterial(cell, this.floorBlackMaterial)
-    );
+    this.gridBuilder.resetFloorCells();
     this.scene.remove(this.agent.model);
     this.canSetDestination = false;
     eventUpdater.fire("can-set-destination-change", null);
@@ -227,7 +128,7 @@ export class GameState {
 
     this.raycaster.setFromCamera(this.mouseNdc, this.camera);
 
-    for (const floorCell of this.floorCells) {
+    for (const floorCell of this.gridBuilder.floorCells) {
       const intersections = this.raycaster.intersectObject(
         floorCell.object,
         false
@@ -266,7 +167,7 @@ export class GameState {
     this.mouseNdc.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
     this.raycaster.setFromCamera(this.mouseNdc, this.camera);
-    for (const floorCell of this.floorCells) {
+    for (const floorCell of this.gridBuilder.floorCells) {
       // Ignore the floor cell the agent is on
       const currentCell = this.agent.currentCell;
       if (currentCell && gridCellsAreEqual(currentCell, floorCell)) {
@@ -298,26 +199,16 @@ export class GameState {
 
     if (fromCell && toCell) {
       const aStar = new AStar();
-      const path = aStar.getPath(fromCell, toCell, this.grid);
+      const path = aStar.getPath(fromCell, toCell, this.gridBuilder.grid);
       if (path) {
         // Change the path floor tiles to green
-        path.forEach((cell) => {
-          this.changeFloorMaterial(cell, this.floorGreenMaterial);
-        });
+        this.gridBuilder.colourPath(path);
         // Set the agent off on the path
         this.agent.setPath(path);
       } else {
         // Change the destination floor tile to red
-        this.changeFloorMaterial(toCell, this.floorRedMaterial);
+        this.gridBuilder.colourDesintationCell(toCell);
       }
     }
   };
-
-  private changeFloorMaterial(cell: GridCell, material: THREE.Material) {
-    (cell.object as THREE.Mesh).material = material;
-  }
-}
-
-export function gridCellsAreEqual(a: GridCell, b: GridCell) {
-  return a.position.equals(b.position);
 }

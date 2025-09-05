@@ -1,4 +1,4 @@
-import { GridCell, gridCellsAreEqual } from "./game-state";
+import { GridCell, gridCellsAreEqual } from "./grid-builder";
 
 // We create a search node object for each grid cell
 interface PathNode extends GridCell {
