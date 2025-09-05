@@ -1,0 +1,15 @@
+Now:
+- per-agent ui menu and set destination from it
+
+
+Next:
+- deselect agent by closing agent menu
+- remove agent from agent menu
+- allow adding multiple agents to scene, each able to follow own paths
+- separate outline passes for hovered and selected
+
+
+Later:
+- patrol routes for agents
+- random destinations for agents
+- pause update loop on lose window focus

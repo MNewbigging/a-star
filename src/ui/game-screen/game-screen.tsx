@@ -33,7 +33,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
         }}
       />
 
-      {selectedAgent && <AgentDetails agent={selectedAgent} />}
+      {selectedAgent && (
+        <AgentDetails agent={selectedAgent} gameState={gameState} />
+      )}
 
       {/* {showSetDestination && (
         <Button

@@ -7,7 +7,7 @@ export class Agent {
   currentCell?: GridCell;
   destinationCell?: GridCell;
 
-  private path: GridCell[] = [];
+  path: GridCell[] = [];
   private targetCell?: GridCell;
   private direction = new THREE.Vector3();
 

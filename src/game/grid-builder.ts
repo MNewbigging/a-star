@@ -77,8 +77,8 @@ export class GridBuilder {
     this.changeCellMaterial(cell, this.floorBlackMaterial);
   }
 
-  resetFloorCells() {
-    this.floorCells.forEach((cell) =>
+  resetFloorCells(cells: GridCell[]) {
+    cells.forEach((cell) =>
       this.changeCellMaterial(cell, this.floorBlackMaterial)
     );
   }

@@ -88,9 +88,9 @@ export class GameState {
     window.addEventListener("click", this.placeAgentClick);
   };
 
-  onSetDestination = () => {
-    // Remove any previous path
-    this.gridBuilder.resetFloorCells();
+  onSetAgentDestination = () => {
+    // Remove any previous path for this agent
+    this.gridBuilder.resetFloorCells(this.agent.path);
 
     // Prevent the default  behaviour
     window.removeEventListener("mousemove", this.defaultMouseMove);
@@ -117,8 +117,8 @@ export class GameState {
   }
 
   private removeAgent() {
+    this.gridBuilder.resetFloorCells(this.agent.path);
     this.agent.clearPath();
-    this.gridBuilder.resetFloorCells();
     this.scene.remove(this.agent.model);
     this.canSetDestination = false;
     eventUpdater.fire("can-set-destination-change", null);
