@@ -3,15 +3,16 @@ import { GameState } from "../../game/game-state";
 import "./game-screen.scss";
 import React from "react";
 import { useEventUpdater } from "../../events/use-event-updater";
+import { AgentDetails } from "./agent-details/agent-details";
 
 interface GameScreenProps {
   gameState: GameState;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
-  useEventUpdater("can-set-destination-change");
+  useEventUpdater("can-set-destination-change", "selected-agent-change");
 
-  const showSetDestination = gameState.canSetDestination;
+  const selectedAgent = gameState.selectedAgent;
 
   return (
     <div className="game-screen">
@@ -32,7 +33,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
         }}
       />
 
-      {showSetDestination && (
+      {selectedAgent && <AgentDetails agent={selectedAgent} />}
+
+      {/* {showSetDestination && (
         <Button
           className="button"
           text="Set Destination"
@@ -42,7 +45,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
             gameState.onSetDestination();
           }}
         />
-      )}
+      )} */}
     </div>
   );
 };

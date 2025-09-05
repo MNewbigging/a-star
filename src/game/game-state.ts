@@ -23,7 +23,7 @@ export class GameState {
 
   private agent: Agent;
   private highlightedAgent?: Agent;
-  private selectedAgent?: Agent;
+  selectedAgent?: Agent;
 
   private gridBuilder: GridBuilder;
 
@@ -256,9 +256,12 @@ export class GameState {
     if (this.highlightedAgent) {
       // Select this agent
       this.selectedAgent = this.highlightedAgent;
-      eventUpdater.fire("selected-agent-change", null);
       console.log("selected agent", this.selectedAgent);
+    } else {
+      this.selectedAgent = undefined;
     }
+
+    eventUpdater.fire("selected-agent-change", null);
   };
 }
 
