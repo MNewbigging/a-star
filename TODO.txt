@@ -3,11 +3,13 @@ Now:
 
 
 Next:
+- use getNdc for destination move
 - what happens if you set destination for agent that is moving?
 - remove agent from agent menu
 - allow adding multiple agents to scene, each able to follow own paths
 - separate outline passes for hovered and selected
 - path should include current standing/starting cell
+- should not exit set destination when cannot reach destination cell
 
 
 Later:

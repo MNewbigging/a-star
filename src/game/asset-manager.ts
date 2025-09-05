@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
@@ -8,6 +9,19 @@ export class AssetManager {
   animations = new Map();
 
   private loadingManager = new THREE.LoadingManager();
+
+  cloneModel(name: string): THREE.Object3D {
+    const model = this.models.get(name);
+    if (model) {
+      return SkeletonUtils.clone(model);
+    }
+
+    // Ensure we always return an object 3d
+    return new THREE.Mesh(
+      new THREE.SphereGeometry(),
+      new THREE.MeshBasicMaterial({ color: "red" })
+    );
+  }
 
   applyModelTexture(model: THREE.Object3D, textureName: string) {
     const texture = this.textures.get(textureName);

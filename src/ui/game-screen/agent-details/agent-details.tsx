@@ -24,14 +24,14 @@ export function AgentDetails({ agent, gameState }: AgentDetailsProps) {
             onClick={() => gameState.onDeselectAgent(agent)}
           />
         </div>
-        <Text>Agent #1</Text>
+        <Text>{agent.model.name}</Text>
         <Button
           className="button"
           text="Set Destination"
           icon="route"
           onClick={(e) => {
             e.stopPropagation();
-            gameState.onSetAgentDestination();
+            gameState.onSetAgentDestination(agent);
           }}
         />
       </Card>

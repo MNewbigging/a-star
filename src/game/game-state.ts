@@ -19,7 +19,9 @@ export class GameState {
   private mouseNdc = new THREE.Vector2();
   private raycaster = new THREE.Raycaster();
 
-  private agent: Agent;
+  private agents: Agent[] = [];
+  private placingAgent?: Agent;
+  private settingAgentDestination?: Agent;
   private highlightedAgent?: Agent;
   selectedAgent?: Agent;
 
@@ -52,9 +54,6 @@ export class GameState {
     this.gridBuilder.buildGrid(this.gridSize);
     this.gridBuilder.displayGrid();
 
-    // Agent
-    this.agent = new Agent(this.assetManager, this.gridBuilder);
-
     window.addEventListener("mousemove", this.defaultMouseMove);
     window.addEventListener("click", this.defaultClick);
 
@@ -63,44 +62,47 @@ export class GameState {
   }
 
   onGenerateGrid = () => {
-    this.removeAgent();
+    this.clearAgents();
     this.gridBuilder.disposeGrid();
     this.gridBuilder.buildGrid(this.gridSize);
     this.gridBuilder.displayGrid();
   };
 
   onPlaceAgent = () => {
-    this.removeAgent();
+    const agent = new Agent(this.assetManager, this.gridBuilder);
+    agent.model.name = `Agent #${this.agents.length + 1}`;
 
     // Add the agent model to the scene out of view
-    this.agent.model.position.set(0, 200, 0);
-    this.agent.playAnimation("idle");
-    this.scene.add(this.agent.model);
+    agent.model.position.set(0, 200, 0);
+    agent.playAnimation("idle");
+    this.scene.add(agent.model);
 
     // Prevent the default behaviour
     window.removeEventListener("mousemove", this.defaultMouseMove);
     window.removeEventListener("click", this.defaultClick);
 
     // Add place agent behaviour
+    this.placingAgent = agent;
     window.addEventListener("mousemove", this.placeAgentMouseMove);
     window.addEventListener("click", this.placeAgentClick);
   };
 
-  onSetAgentDestination = () => {
+  onSetAgentDestination = (agent: Agent) => {
     // Remove any previous path for this agent
-    this.gridBuilder.resetFloorCells(this.agent.path);
+    this.gridBuilder.resetFloorCells(agent.path);
 
     // Prevent the default  behaviour
     window.removeEventListener("mousemove", this.defaultMouseMove);
     window.removeEventListener("click", this.defaultClick);
 
     // Add set destination behaviour
+    this.settingAgentDestination = agent;
     window.addEventListener("mousemove", this.setDestinationMouseMove);
     window.addEventListener("click", this.setDestinationClick);
   };
 
   onRemoveAgent = (agent: Agent) => {
-    this.removeAgent();
+    this.removeAgent(agent);
   };
 
   onDeselectAgent = (agent: Agent) => {
@@ -125,13 +127,24 @@ export class GameState {
     this.scene.add(directLight);
   }
 
-  private removeAgent() {
-    this.agent.clearPath();
-    this.scene.remove(this.agent.model);
+  private clearAgents() {
+    this.agents.forEach((agent) => this.removeAgent(agent));
+  }
 
-    //
-    this.selectedAgent = undefined;
-    this.highlightedAgent = undefined;
+  private removeAgent(agent: Agent) {
+    agent.clearPath();
+    this.scene.remove(agent.model);
+
+    if (this.selectedAgent === agent) {
+      this.selectedAgent = undefined;
+      eventUpdater.fire("selected-agent-change", null);
+    }
+
+    if (this.highlightedAgent === agent) {
+      this.highlightedAgent = undefined;
+    }
+
+    this.agents = this.agents.filter((a) => a !== agent);
   }
 
   private update = () => {
@@ -141,12 +154,14 @@ export class GameState {
 
     this.controls.update();
 
-    this.agent?.update(dt);
+    this.agents.forEach((agent) => agent.update(dt));
 
     this.renderPipeline.render(dt);
   };
 
   private placeAgentMouseMove = (e: MouseEvent) => {
+    if (!this.placingAgent) return;
+
     getNdc(e, this.mouseNdc);
     this.raycaster.setFromCamera(this.mouseNdc, this.camera);
 
@@ -161,8 +176,8 @@ export class GameState {
         this.renderPipeline.outlineObject(floorCell.object);
 
         // Place agent at the center of this grid cell
-        this.agent.model.position.copy(floorCell.position);
-        this.agent.currentCell = floorCell;
+        this.placingAgent.model.position.copy(floorCell.position);
+        this.placingAgent.currentCell = floorCell;
 
         break;
       }
@@ -170,9 +185,13 @@ export class GameState {
   };
 
   private placeAgentClick = () => {
-    if (!this.agent.currentCell) {
+    if (!this.placingAgent || !this.placingAgent.currentCell) {
       return;
     }
+
+    // Add to list of placed agents and clear placing ref
+    this.agents.push(this.placingAgent);
+    this.placingAgent = undefined;
 
     // Remove listeners and outlines
     window.removeEventListener("mousemove", this.placeAgentMouseMove);
@@ -185,13 +204,15 @@ export class GameState {
   };
 
   private setDestinationMouseMove = (e: MouseEvent) => {
+    if (!this.settingAgentDestination) return;
+
     this.mouseNdc.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouseNdc.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
     this.raycaster.setFromCamera(this.mouseNdc, this.camera);
     for (const floorCell of this.gridBuilder.floorCells) {
       // Ignore the floor cell the agent is on
-      const currentCell = this.agent.currentCell;
+      const currentCell = this.settingAgentDestination.currentCell;
       if (currentCell && gridCellsAreEqual(currentCell, floorCell)) {
         continue;
       }
@@ -204,12 +225,14 @@ export class GameState {
         this.renderPipeline.clearOutlines();
         this.renderPipeline.outlineObject(floorCell.object);
 
-        this.agent.destinationCell = floorCell;
+        this.settingAgentDestination.destinationCell = floorCell;
       }
     }
   };
 
   private setDestinationClick = () => {
+    if (!this.settingAgentDestination) return;
+
     // Remove listeners and outlines
     window.removeEventListener("mousemove", this.setDestinationMouseMove);
     window.removeEventListener("click", this.setDestinationClick);
@@ -220,8 +243,8 @@ export class GameState {
     window.addEventListener("click", this.defaultClick);
 
     // Find a path to the destination
-    const fromCell = this.agent.currentCell;
-    const toCell = this.agent.destinationCell;
+    const fromCell = this.settingAgentDestination.currentCell;
+    const toCell = this.settingAgentDestination.destinationCell;
 
     if (fromCell && toCell) {
       const aStar = new AStar();
@@ -230,12 +253,14 @@ export class GameState {
         // Change the path floor tiles to green
         this.gridBuilder.colourPath(path);
         // Set the agent off on the path
-        this.agent.setPath(path);
+        this.settingAgentDestination.setPath(path);
       } else {
         // Change the destination floor tile to red
         this.gridBuilder.colourDesintationCell(toCell);
       }
     }
+
+    this.settingAgentDestination = undefined;
   };
 
   private defaultMouseMove = (e: MouseEvent) => {
@@ -247,22 +272,20 @@ export class GameState {
     this.highlightedAgent = undefined;
 
     // Highlight any hovered agent
-    const intersections = this.raycaster.intersectObject(
-      this.agent.model,
-      true
-    );
-    if (intersections.length) {
-      this.renderPipeline.outlineObject(this.agent.model);
-      this.highlightedAgent = this.agent;
-      return;
+    for (const agent of this.agents) {
+      const intersections = this.raycaster.intersectObject(agent.model, true);
+      if (intersections.length) {
+        this.renderPipeline.outlineObject(agent.model);
+        this.highlightedAgent = agent;
+        return;
+      }
     }
   };
 
-  private defaultClick = (e: MouseEvent) => {
+  private defaultClick = () => {
     if (this.highlightedAgent) {
       // Select this agent
       this.selectedAgent = this.highlightedAgent;
-      console.log("selected agent", this.selectedAgent);
     }
 
     eventUpdater.fire("selected-agent-change", null);

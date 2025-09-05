@@ -20,7 +20,7 @@ export class Agent {
     private gridBuilder: GridBuilder
   ) {
     // Setup the model
-    this.model = this.assetManager.models.get("dummy");
+    this.model = this.assetManager.cloneModel("dummy");
     this.assetManager.applyModelTexture(this.model, "dummy");
 
     // Setup animations
