@@ -103,6 +103,13 @@ export class GameState {
     this.removeAgent();
   };
 
+  onDeselectAgent = (agent: Agent) => {
+    if (agent === this.selectedAgent) {
+      this.selectedAgent = undefined;
+      eventUpdater.fire("selected-agent-change", null);
+    }
+  };
+
   private setupCamera() {
     this.camera.fov = 75;
     this.camera.far = 500;

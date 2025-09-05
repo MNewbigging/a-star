@@ -12,3 +12,4 @@ Later:
 - patrol routes for agents
 - random destinations for agents
 - pause update loop on lose window focus
+- install the popover2 lib from blueprint

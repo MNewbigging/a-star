@@ -15,8 +15,13 @@ export function AgentDetails({ agent, gameState }: AgentDetailsProps) {
         <div className="quick-nav-row">
           <Button
             className="button"
-            icon="cross"
+            icon="trash"
             onClick={() => gameState.onRemoveAgent(agent)}
+          />
+          <Button
+            className="button"
+            icon="cross"
+            onClick={() => gameState.onDeselectAgent(agent)}
           />
         </div>
         <Text>Agent #1</Text>
