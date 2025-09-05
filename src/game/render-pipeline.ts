@@ -82,6 +82,11 @@ export class RenderPipeline {
     this.hoverOutlinePass.selectedObjects = [];
   }
 
+  removeHoverOutlineObject(object: THREE.Object3D) {
+    this.hoverOutlinePass.selectedObjects =
+      this.hoverOutlinePass.selectedObjects.filter((obj) => obj !== object);
+  }
+
   selectOutlineObject(object: THREE.Object3D) {
     this.selectedOutlinePass.selectedObjects.push(object);
   }

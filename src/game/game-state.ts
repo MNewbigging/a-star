@@ -105,11 +105,7 @@ export class GameState {
   };
 
   onDeselectAgent = (agent: Agent) => {
-    if (agent === this.selectedAgent) {
-      this.renderPipeline.removeSelectOutlineObject(agent.model);
-      this.selectedAgent = undefined;
-      eventUpdater.fire("selected-agent-change", null);
-    }
+    this.deselectAgent(agent);
   };
 
   private setupCamera() {
@@ -127,6 +123,14 @@ export class GameState {
     this.scene.add(directLight);
   }
 
+  private deselectAgent(agent: Agent) {
+    if (agent === this.selectedAgent) {
+      this.renderPipeline.removeSelectOutlineObject(agent.model);
+      this.selectedAgent = undefined;
+      eventUpdater.fire("selected-agent-change", null);
+    }
+  }
+
   private clearAgents() {
     this.agents.forEach((agent) => this.removeAgent(agent));
   }
@@ -137,11 +141,13 @@ export class GameState {
 
     if (this.selectedAgent === agent) {
       this.selectedAgent = undefined;
+      this.renderPipeline.removeSelectOutlineObject(agent.model);
       eventUpdater.fire("selected-agent-change", null);
     }
 
     if (this.highlightedAgent === agent) {
       this.highlightedAgent = undefined;
+      this.renderPipeline.removeHoverOutlineObject(agent.model);
     }
 
     this.agents = this.agents.filter((a) => a !== agent);
