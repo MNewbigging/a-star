@@ -48,6 +48,11 @@ export class Agent {
   }
 
   clearPath() {
+    // Ensure colours are reset before clearing references
+    this.gridBuilder.resetFloorCells(this.path);
+    if (this.currentCell) this.gridBuilder.resetFloorCell(this.currentCell);
+    if (this.targetCell) this.gridBuilder.resetFloorCell(this.targetCell);
+
     this.path = [];
     this.targetCell = undefined;
     this.currentCell = undefined;
@@ -126,7 +131,7 @@ export class Agent {
 
   private colourCellBlack(cell?: GridCell) {
     if (cell) {
-      this.gridBuilder.resetGridCellColour(cell);
+      this.gridBuilder.resetFloorCell(cell);
     }
   }
 

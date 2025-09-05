@@ -119,7 +119,6 @@ export class GameState {
   }
 
   private removeAgent() {
-    this.gridBuilder.resetFloorCells(this.agent.path);
     this.agent.clearPath();
     this.scene.remove(this.agent.model);
 

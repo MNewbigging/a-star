@@ -73,7 +73,7 @@ export class GridBuilder {
     );
   }
 
-  resetGridCellColour(cell: GridCell) {
+  resetFloorCell(cell: GridCell) {
     this.changeCellMaterial(cell, this.floorBlackMaterial);
   }
 
