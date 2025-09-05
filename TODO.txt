@@ -1,9 +1,8 @@
 Now:
-- per-agent ui menu and set destination from it
+- deselect agent by closing agent menu
 
 
 Next:
-- deselect agent by closing agent menu
 - remove agent from agent menu
 - allow adding multiple agents to scene, each able to follow own paths
 - separate outline passes for hovered and selected

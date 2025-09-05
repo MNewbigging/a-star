@@ -9,8 +9,6 @@ import { eventUpdater } from "../events/event-updater";
 import { GridBuilder, gridCellsAreEqual } from "./grid-builder";
 
 export class GameState {
-  canSetDestination = false;
-
   private renderPipeline: RenderPipeline;
   private clock = new THREE.Clock();
 
@@ -101,6 +99,10 @@ export class GameState {
     window.addEventListener("click", this.setDestinationClick);
   };
 
+  onRemoveAgent = (agent: Agent) => {
+    this.removeAgent();
+  };
+
   private setupCamera() {
     this.camera.fov = 75;
     this.camera.far = 500;
@@ -120,7 +122,11 @@ export class GameState {
     this.gridBuilder.resetFloorCells(this.agent.path);
     this.agent.clearPath();
     this.scene.remove(this.agent.model);
-    this.canSetDestination = false;
+
+    //
+    this.selectedAgent = undefined;
+    this.highlightedAgent = undefined;
+
     eventUpdater.fire("can-set-destination-change", null);
   }
 
@@ -173,8 +179,6 @@ export class GameState {
     window.addEventListener("mousemove", this.defaultMouseMove);
     window.addEventListener("click", this.defaultClick);
 
-    // Can now set destination for the agent
-    this.canSetDestination = true;
     eventUpdater.fire("can-set-destination-change", null);
   };
 
@@ -257,8 +261,6 @@ export class GameState {
       // Select this agent
       this.selectedAgent = this.highlightedAgent;
       console.log("selected agent", this.selectedAgent);
-    } else {
-      this.selectedAgent = undefined;
     }
 
     eventUpdater.fire("selected-agent-change", null);

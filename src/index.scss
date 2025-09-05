@@ -34,3 +34,9 @@ canvas {
   height: 100vh;
   inset: 0;
 }
+
+.button {
+  pointer-events: all;
+  user-select: none;
+  outline: none;
+}
