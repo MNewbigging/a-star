@@ -123,9 +123,7 @@ export class GameState {
   };
 
   private placeAgentMouseMove = (e: MouseEvent) => {
-    this.mouseNdc.x = (e.clientX / window.innerWidth) * 2 - 1;
-    this.mouseNdc.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
+    getNdc(e, this.mouseNdc);
     this.raycaster.setFromCamera(this.mouseNdc, this.camera);
 
     for (const floorCell of this.gridBuilder.floorCells) {
@@ -211,4 +209,11 @@ export class GameState {
       }
     }
   };
+
+  private defaultMouseMove = (e: MouseEvent) => {};
+}
+
+function getNdc(e: MouseEvent, target: THREE.Vector2) {
+  target.x = (e.clientX / window.innerWidth) * 2 - 1;
+  target.y = -(e.clientY / window.innerHeight) * 2 + 1;
 }
