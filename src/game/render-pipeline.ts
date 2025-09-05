@@ -7,7 +7,8 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass";
 export class RenderPipeline {
   private effectComposer: EffectComposer;
   private renderPass: RenderPass;
-  private outlinePass: OutlinePass;
+  private hoverOutlinePass: OutlinePass;
+  private selectedOutlinePass: OutlinePass;
   private renderer: THREE.WebGLRenderer;
 
   constructor(
@@ -36,18 +37,31 @@ export class RenderPipeline {
     this.renderPass = new RenderPass(scene, camera);
     this.effectComposer.addPass(this.renderPass);
 
-    // Outline pass
-    this.outlinePass = new OutlinePass(
+    // Hover outline pass
+    this.hoverOutlinePass = new OutlinePass(
       new THREE.Vector2(this.canvas.clientWidth, this.canvas.clientHeight),
       scene,
       camera
     );
-    this.outlinePass.edgeStrength = 10;
-    this.outlinePass.edgeThickness = 0.25;
-    this.outlinePass.edgeGlow = 0;
-    this.outlinePass.visibleEdgeColor.set("#ffffff");
-    this.outlinePass.hiddenEdgeColor.set("#ffffff");
-    this.effectComposer.addPass(this.outlinePass);
+    this.hoverOutlinePass.edgeStrength = 10;
+    this.hoverOutlinePass.edgeThickness = 0.25;
+    this.hoverOutlinePass.edgeGlow = 0;
+    this.hoverOutlinePass.visibleEdgeColor.set("#ffffff");
+    this.hoverOutlinePass.hiddenEdgeColor.set("#ffffff");
+    this.effectComposer.addPass(this.hoverOutlinePass);
+
+    // Selected outline pass
+    this.selectedOutlinePass = new OutlinePass(
+      new THREE.Vector2(this.canvas.clientWidth, this.canvas.clientHeight),
+      scene,
+      camera
+    );
+    this.selectedOutlinePass.edgeStrength = 12;
+    this.selectedOutlinePass.edgeThickness = 0.25;
+    this.selectedOutlinePass.edgeGlow = 0.6;
+    this.selectedOutlinePass.visibleEdgeColor.set("#f3831b");
+    this.selectedOutlinePass.hiddenEdgeColor.set("#f3831b");
+    this.effectComposer.addPass(this.selectedOutlinePass);
 
     this.effectComposer.addPass(new OutputPass());
   }
@@ -60,12 +74,21 @@ export class RenderPipeline {
     this.effectComposer.render(dt);
   }
 
-  outlineObject(object: THREE.Object3D) {
-    this.outlinePass.selectedObjects.push(object);
+  hoverOutlineObject(object: THREE.Object3D) {
+    this.hoverOutlinePass.selectedObjects.push(object);
   }
 
-  clearOutlines() {
-    this.outlinePass.selectedObjects = [];
+  clearHoverOutlines() {
+    this.hoverOutlinePass.selectedObjects = [];
+  }
+
+  selectOutlineObject(object: THREE.Object3D) {
+    this.selectedOutlinePass.selectedObjects.push(object);
+  }
+
+  removeSelectOutlineObject(object: THREE.Object3D) {
+    this.selectedOutlinePass.selectedObjects =
+      this.selectedOutlinePass.selectedObjects.filter((obj) => obj !== object);
   }
 
   private onCanvasResize = () => {

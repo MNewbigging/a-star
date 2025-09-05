@@ -106,6 +106,7 @@ export class GameState {
 
   onDeselectAgent = (agent: Agent) => {
     if (agent === this.selectedAgent) {
+      this.renderPipeline.removeSelectOutlineObject(agent.model);
       this.selectedAgent = undefined;
       eventUpdater.fire("selected-agent-change", null);
     }
@@ -171,8 +172,8 @@ export class GameState {
       );
       if (intersections.length) {
         // Outline
-        this.renderPipeline.clearOutlines();
-        this.renderPipeline.outlineObject(floorCell.object);
+        this.renderPipeline.clearHoverOutlines();
+        this.renderPipeline.hoverOutlineObject(floorCell.object);
 
         // Place agent at the center of this grid cell
         this.placingAgent.model.position.copy(floorCell.position);
@@ -195,7 +196,7 @@ export class GameState {
     // Remove listeners and outlines
     window.removeEventListener("mousemove", this.placeAgentMouseMove);
     window.removeEventListener("click", this.placeAgentClick);
-    this.renderPipeline.clearOutlines();
+    this.renderPipeline.clearHoverOutlines();
 
     // Can resume default behaviour
     window.addEventListener("mousemove", this.defaultMouseMove);
@@ -220,8 +221,8 @@ export class GameState {
         false
       );
       if (intersections.length) {
-        this.renderPipeline.clearOutlines();
-        this.renderPipeline.outlineObject(floorCell.object);
+        this.renderPipeline.clearHoverOutlines();
+        this.renderPipeline.hoverOutlineObject(floorCell.object);
 
         this.settingAgentDestination.destinationCell = floorCell;
       }
@@ -234,7 +235,7 @@ export class GameState {
     // Remove listeners and outlines
     window.removeEventListener("mousemove", this.setDestinationMouseMove);
     window.removeEventListener("click", this.setDestinationClick);
-    this.renderPipeline.clearOutlines();
+    this.renderPipeline.clearHoverOutlines();
 
     // Can resume default behaviour
     window.addEventListener("mousemove", this.defaultMouseMove);
@@ -266,26 +267,41 @@ export class GameState {
     this.raycaster.setFromCamera(this.reused.ndc, this.camera);
 
     // Hover is cleared with each move
-    this.renderPipeline.clearOutlines();
+    this.renderPipeline.clearHoverOutlines();
     this.highlightedAgent = undefined;
 
     // Highlight any hovered agent
     for (const agent of this.agents) {
       const intersections = this.raycaster.intersectObject(agent.model, true);
-      if (intersections.length) {
-        this.renderPipeline.outlineObject(agent.model);
-        this.highlightedAgent = agent;
-        return;
-      }
+      if (!intersections.length) continue;
+
+      // Ensure we don't highlight a selected model
+      if (agent === this.selectedAgent) return;
+
+      this.renderPipeline.hoverOutlineObject(agent.model);
+      this.highlightedAgent = agent;
+
+      return;
     }
   };
 
   private defaultClick = () => {
-    if (this.highlightedAgent) {
-      // Select this agent
+    // Just use last-highlighted agent instead of redoing intersection test on the click
+    if (!this.highlightedAgent) return;
+
+    // If the clicked agent is already selected, stop early
+    if (this.selectedAgent === this.highlightedAgent) return;
+
+    // If nothing is currently selected
+    if (!this.selectedAgent) {
+      this.selectedAgent = this.highlightedAgent;
+    } else if (this.selectedAgent !== this.highlightedAgent) {
+      // Different thing is selected, clear previous one first
+      this.onDeselectAgent(this.selectedAgent);
       this.selectedAgent = this.highlightedAgent;
     }
 
+    this.renderPipeline.selectOutlineObject(this.selectedAgent.model);
     eventUpdater.fire("selected-agent-change", null);
   };
 }
