@@ -7,13 +7,11 @@
     padding: 10px;
 
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 2px;
 
-    .quick-nav-row {
-      display: flex;
-      justify-content: end;
-      gap: 2px;
+    .name {
+      padding-right: 10px;
     }
   }
 }

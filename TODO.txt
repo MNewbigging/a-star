@@ -1,9 +1,7 @@
 Now:
 
 
-
 Next:
-- what happens if you set destination for agent that is moving?
 - path should include current standing/starting cell
 - should not exit set destination when cannot reach destination cell
 

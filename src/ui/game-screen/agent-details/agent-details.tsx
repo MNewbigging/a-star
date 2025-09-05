@@ -2,6 +2,7 @@ import { Button, Card, Text } from "@blueprintjs/core";
 import { Agent } from "../../../game/agent";
 import "./agent-details.scss";
 import { GameState } from "../../../game/game-state";
+import { useEventUpdater } from "../../../events/use-event-updater";
 
 interface AgentDetailsProps {
   agent: Agent;
@@ -9,30 +10,42 @@ interface AgentDetailsProps {
 }
 
 export function AgentDetails({ agent, gameState }: AgentDetailsProps) {
+  useEventUpdater("agent-follow-path-change");
+
   return (
     <div className="agent-details">
       <Card className="agent-card">
-        <div className="quick-nav-row">
+        <Text className="name">{agent.model.name}</Text>
+
+        {!agent.followingPath && (
           <Button
             className="button"
-            icon="trash"
-            onClick={() => gameState.onRemoveAgent(agent)}
+            icon="route"
+            onClick={(e) => {
+              e.stopPropagation();
+              gameState.onSetAgentDestination(agent);
+            }}
           />
+        )}
+
+        {agent.followingPath && (
           <Button
             className="button"
-            icon="cross"
-            onClick={() => gameState.onDeselectAgent(agent)}
+            icon="ban-circle"
+            onClick={() => agent.stop()}
           />
-        </div>
-        <Text>{agent.model.name}</Text>
+        )}
+
         <Button
           className="button"
-          text="Set Destination"
-          icon="route"
-          onClick={(e) => {
-            e.stopPropagation();
-            gameState.onSetAgentDestination(agent);
-          }}
+          icon="trash"
+          onClick={() => gameState.onRemoveAgent(agent)}
+        />
+
+        <Button
+          className="button"
+          icon="cross"
+          onClick={() => gameState.onDeselectAgent(agent)}
         />
       </Card>
     </div>

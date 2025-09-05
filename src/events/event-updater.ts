@@ -2,6 +2,7 @@ export interface EventMap {
   "game-loaded": null;
   "game-started": null;
   "selected-agent-change": null;
+  "agent-follow-path-change": null;
 }
 
 type EventCallback = (event: any) => void;

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { AssetManager } from "./asset-manager";
 import { GridBuilder, GridCell } from "./grid-builder";
+import { eventUpdater } from "../events/event-updater";
 
 export class Agent {
   model: THREE.Object3D;
@@ -34,6 +35,18 @@ export class Agent {
     this.animations.set(walkClip.name, walkAction);
   }
 
+  get followingPath(): boolean {
+    return !!this.path.length;
+  }
+
+  stop() {
+    if (!this.targetCell) return;
+
+    // Just remove all other cells ahead of target
+    this.gridBuilder.resetFloorCells(this.path);
+    this.path = [];
+  }
+
   update(dt: number) {
     this.mixer.update(dt);
 
@@ -45,6 +58,8 @@ export class Agent {
 
     this.playAnimation("walk");
     this.setNextTargetCell();
+
+    eventUpdater.fire("agent-follow-path-change", null);
   }
 
   clearPath() {
@@ -148,8 +163,11 @@ export class Agent {
 
   private onFinishPath() {
     this.playAnimation("idle");
+
     if (this.currentCell) {
       this.colourCellBlack(this.currentCell);
     }
+
+    eventUpdater.fire("agent-follow-path-change", null);
   }
 }
