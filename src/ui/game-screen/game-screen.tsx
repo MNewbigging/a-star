@@ -19,7 +19,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
         className="button"
         text="Generate Grid"
         icon="grid"
-        onClick={gameState.generateGrid}
+        onClick={gameState.onGenerateGrid}
       />
 
       <Button
@@ -28,7 +28,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
         icon="walk"
         onClick={(e) => {
           e.stopPropagation();
-          gameState.startPlacingAgent();
+          gameState.onPlaceAgent();
         }}
       />
 
@@ -39,7 +39,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
           icon="route"
           onClick={(e) => {
             e.stopPropagation();
-            gameState.startSetDestination();
+            gameState.onSetDestination();
           }}
         />
       )}

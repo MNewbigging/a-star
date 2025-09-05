@@ -55,14 +55,14 @@ export class GameState {
     this.update();
   }
 
-  generateGrid = () => {
+  onGenerateGrid = () => {
     this.removeAgent();
     this.gridBuilder.disposeGrid();
     this.gridBuilder.buildGrid(this.gridSize);
     this.gridBuilder.displayGrid();
   };
 
-  startPlacingAgent = () => {
+  onPlaceAgent = () => {
     this.removeAgent();
 
     // Add the agent model to the scene out of view
@@ -76,7 +76,7 @@ export class GameState {
     window.addEventListener("click", this.placeAgentClick);
   };
 
-  startSetDestination = () => {
+  onSetDestination = () => {
     // Remove any previous path
     this.gridBuilder.resetFloorCells();
 
