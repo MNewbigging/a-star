@@ -22,6 +22,8 @@ export class GameState {
   private raycaster = new THREE.Raycaster();
 
   private agent: Agent;
+  private highlightedAgent?: Agent;
+  private selectedAgent?: Agent;
 
   private gridBuilder: GridBuilder;
 
@@ -56,6 +58,7 @@ export class GameState {
     this.agent = new Agent(this.assetManager, this.gridBuilder);
 
     window.addEventListener("mousemove", this.defaultMouseMove);
+    window.addEventListener("click", this.defaultClick);
 
     // Start game
     this.update();
@@ -76,11 +79,12 @@ export class GameState {
     this.agent.playAnimation("idle");
     this.scene.add(this.agent.model);
 
-    // Prevent the default move behaviour
+    // Prevent the default behaviour
     window.removeEventListener("mousemove", this.defaultMouseMove);
-    // Highlight floor spaces for agent placement
+    window.removeEventListener("click", this.defaultClick);
+
+    // Add place agent behaviour
     window.addEventListener("mousemove", this.placeAgentMouseMove);
-    // Listen for clicks
     window.addEventListener("click", this.placeAgentClick);
   };
 
@@ -88,13 +92,12 @@ export class GameState {
     // Remove any previous path
     this.gridBuilder.resetFloorCells();
 
-    // Prevent the default move behaviour
+    // Prevent the default  behaviour
     window.removeEventListener("mousemove", this.defaultMouseMove);
+    window.removeEventListener("click", this.defaultClick);
 
-    // Highlight floor spaces for available destinations
+    // Add set destination behaviour
     window.addEventListener("mousemove", this.setDestinationMouseMove);
-
-    // Listen for clicks
     window.addEventListener("click", this.setDestinationClick);
   };
 
@@ -166,8 +169,9 @@ export class GameState {
     window.removeEventListener("click", this.placeAgentClick);
     this.renderPipeline.clearOutlines();
 
-    // Can resume default move behaviour
+    // Can resume default behaviour
     window.addEventListener("mousemove", this.defaultMouseMove);
+    window.addEventListener("click", this.defaultClick);
 
     // Can now set destination for the agent
     this.canSetDestination = true;
@@ -205,8 +209,9 @@ export class GameState {
     window.removeEventListener("click", this.setDestinationClick);
     this.renderPipeline.clearOutlines();
 
-    // Can resume default move behaviour
+    // Can resume default behaviour
     window.addEventListener("mousemove", this.defaultMouseMove);
+    window.addEventListener("click", this.defaultClick);
 
     // Find a path to the destination
     const fromCell = this.agent.currentCell;
@@ -231,16 +236,28 @@ export class GameState {
     getNdc(e, this.reused.ndc);
     this.raycaster.setFromCamera(this.reused.ndc, this.camera);
 
+    // Hover is cleared with each move
     this.renderPipeline.clearOutlines();
-    // Highlight hovered agents
+    this.highlightedAgent = undefined;
 
+    // Highlight any hovered agent
     const intersections = this.raycaster.intersectObject(
       this.agent.model,
       true
     );
     if (intersections.length) {
       this.renderPipeline.outlineObject(this.agent.model);
+      this.highlightedAgent = this.agent;
       return;
+    }
+  };
+
+  private defaultClick = (e: MouseEvent) => {
+    if (this.highlightedAgent) {
+      // Select this agent
+      this.selectedAgent = this.highlightedAgent;
+      eventUpdater.fire("selected-agent-change", null);
+      console.log("selected agent", this.selectedAgent);
     }
   };
 }
