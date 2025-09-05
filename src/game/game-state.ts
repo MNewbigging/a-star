@@ -27,6 +27,10 @@ export class GameState {
 
   private gridSize = 10;
 
+  private reused = {
+    ndc: new THREE.Vector2(),
+  };
+
   constructor(private assetManager: AssetManager) {
     // Scene
     this.setupCamera();
@@ -51,6 +55,8 @@ export class GameState {
     // Agent
     this.agent = new Agent(this.assetManager, this.gridBuilder);
 
+    window.addEventListener("mousemove", this.defaultMouseMove);
+
     // Start game
     this.update();
   }
@@ -70,6 +76,8 @@ export class GameState {
     this.agent.playAnimation("idle");
     this.scene.add(this.agent.model);
 
+    // Prevent the default move behaviour
+    window.removeEventListener("mousemove", this.defaultMouseMove);
     // Highlight floor spaces for agent placement
     window.addEventListener("mousemove", this.placeAgentMouseMove);
     // Listen for clicks
@@ -79,6 +87,9 @@ export class GameState {
   onSetDestination = () => {
     // Remove any previous path
     this.gridBuilder.resetFloorCells();
+
+    // Prevent the default move behaviour
+    window.removeEventListener("mousemove", this.defaultMouseMove);
 
     // Highlight floor spaces for available destinations
     window.addEventListener("mousemove", this.setDestinationMouseMove);
@@ -155,6 +166,9 @@ export class GameState {
     window.removeEventListener("click", this.placeAgentClick);
     this.renderPipeline.clearOutlines();
 
+    // Can resume default move behaviour
+    window.addEventListener("mousemove", this.defaultMouseMove);
+
     // Can now set destination for the agent
     this.canSetDestination = true;
     eventUpdater.fire("can-set-destination-change", null);
@@ -191,6 +205,9 @@ export class GameState {
     window.removeEventListener("click", this.setDestinationClick);
     this.renderPipeline.clearOutlines();
 
+    // Can resume default move behaviour
+    window.addEventListener("mousemove", this.defaultMouseMove);
+
     // Find a path to the destination
     const fromCell = this.agent.currentCell;
     const toCell = this.agent.destinationCell;
@@ -210,7 +227,22 @@ export class GameState {
     }
   };
 
-  private defaultMouseMove = (e: MouseEvent) => {};
+  private defaultMouseMove = (e: MouseEvent) => {
+    getNdc(e, this.reused.ndc);
+    this.raycaster.setFromCamera(this.reused.ndc, this.camera);
+
+    this.renderPipeline.clearOutlines();
+    // Highlight hovered agents
+
+    const intersections = this.raycaster.intersectObject(
+      this.agent.model,
+      true
+    );
+    if (intersections.length) {
+      this.renderPipeline.outlineObject(this.agent.model);
+      return;
+    }
+  };
 }
 
 function getNdc(e: MouseEvent, target: THREE.Vector2) {
