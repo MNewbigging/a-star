@@ -10,7 +10,7 @@ interface GameScreenProps {
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({ gameState }) => {
-  useEventUpdater("can-set-destination-change", "selected-agent-change");
+  useEventUpdater("selected-agent-change");
 
   const selectedAgent = gameState.selectedAgent;
 

@@ -1,7 +1,6 @@
 export interface EventMap {
   "game-loaded": null;
   "game-started": null;
-  "can-set-destination-change": null;
   "selected-agent-change": null;
 }
 

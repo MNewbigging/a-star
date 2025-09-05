@@ -132,8 +132,6 @@ export class GameState {
     //
     this.selectedAgent = undefined;
     this.highlightedAgent = undefined;
-
-    eventUpdater.fire("can-set-destination-change", null);
   }
 
   private update = () => {
@@ -184,8 +182,6 @@ export class GameState {
     // Can resume default behaviour
     window.addEventListener("mousemove", this.defaultMouseMove);
     window.addEventListener("click", this.defaultClick);
-
-    eventUpdater.fire("can-set-destination-change", null);
   };
 
   private setDestinationMouseMove = (e: MouseEvent) => {
