@@ -4,6 +4,7 @@ Now:
 Next:
 - path should include current standing/starting cell
 - should not exit set destination when cannot reach destination cell
+- clear red cells 
 
 
 Later:
@@ -11,3 +12,9 @@ Later:
 - random destinations for agents
 - pause update loop on lose window focus
 - install the popover2 lib from blueprint
+- have tasks agents must complete (more anims ideally)
+
+
+Awesome idea:
+You are in an AI lab facility. The grid cells that make up the walkable terrain should be in a lab room, with robots that come out of side doors, and buttons that affect the current test.
+Cool transition animations as the floor cells change for the next test.
